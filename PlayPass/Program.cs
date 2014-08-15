@@ -42,6 +42,7 @@ namespace PlayPass
             catch (Exception ex)
             {
                 Console.WriteLine("The following exception has occurred:\n   " + ex.Message);
+                Console.WriteLine(ex.ToString());
             }
         }
     }
