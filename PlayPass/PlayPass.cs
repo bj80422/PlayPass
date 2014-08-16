@@ -78,6 +78,7 @@ namespace PlayPass
                     foreach (XmlNode Node in PassNode.ChildNodes)
                     {
                         string MatchPattern = Util.GetNodeAttributeValue(Node, "name");
+                        string ExcludePattern = Util.GetNodeAttributeValue(Node, "exclude");
                         bool FoundItem = false;
                         if (!(CurrItem is PlayOnFolder))
                             continue;
@@ -90,7 +91,11 @@ namespace PlayPass
                                 {
                                     if (VerboseMode)
                                         WriteLog("    Checking pattern against \"{0}\"...", ChildItem.Name);
-                                    if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
+                                    if (Util.MatchesPattern(ChildItem.Name, ExcludePattern))
+                                    {
+                                        WriteLog("    Excluded: \"{0}\"", ChildItem.Name);
+                                    }
+                                    else if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
                                     {
                                         WriteLog("    Found: " + ChildItem.Name);
                                         FoundItem = true;
@@ -111,7 +116,11 @@ namespace PlayPass
                                 {
                                     if (VerboseMode)
                                         WriteLog("    Checking pattern against \"{0}\"...", ChildItem.Name);
-                                    if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
+                                    if (Util.MatchesPattern(ChildItem.Name, ExcludePattern))
+                                    {
+                                        WriteLog("    Excluded: \"{0}\"", ChildItem.Name);
+                                    }
+                                    else if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
                                     {
                                         WriteLog("    Found: {0}", ChildItem.Name);
                                         QueueMedia((PlayOnVideo)ChildItem);

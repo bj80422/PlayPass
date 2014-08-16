@@ -39,7 +39,7 @@ Make a copy of the PlayPass.example.cfg and modify it to your liking.  The follo
 
 You can add as many "passes" nodes as you'd like.  You can even disable one by changing the "enabled" property to "0".  `scan` nodes will progress through the PlayOn items looking for an item that matches the supplied name.  The `name` can use * as a wildcard to match zero to many characters or ? to match one character.
 
-You can add as many `queue` nodes as you'd like which will queue any videos in the current position in the PlayOn items that matches the included pattern.  The `name` argument can also use wildcards like the `scan` nodes.
+You can add as many `queue` nodes as you'd like which will queue any videos in the current position in the PlayOn items that matches the included pattern.  The `name` argument can also use wildcards like the `scan` nodes.  Both scan and queue nodes can utilize a `exclude` argument to exclude known bad matches.  This can sometimes simplify favorites channels to a `*` match.
 
 To test what would be queued just execute PlayPass.exe with the filename of your config file:
 
