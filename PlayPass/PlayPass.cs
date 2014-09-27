@@ -18,6 +18,8 @@ namespace PlayPass
         string MediaFileExt = "";
         public bool QueueMode = false;
         public bool VerboseMode = false;
+        private TimeSpan _MaxRunTime = TimeSpan.FromSeconds(0);
+        private TimeSpan _QueuedRunTime = TimeSpan.FromSeconds(0);
 
         /// <summary>
         /// Loads the PlayOn settings from the local computer's registry.
@@ -53,6 +55,10 @@ namespace PlayPass
                 XmlNode PassesNode = Config.SelectSingleNode("playpass/passes");
                 if (PassesNode == null)
                     throw new Exception("A passes node was found in the config file");
+
+                _MaxRunTime = TimeSpan.Parse(PlaySharp.Util.GetNodeAttributeValue(PassesNode, "max", _MaxRunTime.ToString(@"hh\:mm\:ss")));
+                WriteLog("Max Run Time: " + _MaxRunTime);
+
                 foreach (XmlNode PassNode in PassesNode.SelectNodes("pass"))
                     ProcessPass(PlayOn, PassNode);
             }
@@ -147,33 +153,42 @@ namespace PlayPass
             bool Success = false;
             string Message = "";
 
-            WriteLog("      Adding Video to Queue: " + Item.Name);
+            WriteLog("      Adding Video to Queue: " + Item.Name + " (" + Item.RunTime + ")");
             string FileName = String.Format("{0} - {1}{2}", Item.Series, Item.MediaTitle, MediaFileExt);
             Regex re = new Regex("[<>:\"/\\|?*]");
             FileName = re.Replace(FileName, "_").TrimStart(' ','-');
             if (File.Exists(Path.Combine(MediaStorageLocation, FileName)))
                 Message = String.Format("Video already recorded to {0}.", Path.Combine(MediaStorageLocation, FileName));
-            else if (!QueueMode)
+            else if (_MaxRunTime.TotalSeconds == 0 || _QueuedRunTime.Add(Item.RunTime) < _MaxRunTime)
             {
-                Success = true;
-                Message = "Video will be queued on next run in Queue Mode.";
-            }
-            else
-            {
-                try
+                if (!QueueMode)
                 {
-                    QueueVideoResult QueueResult = Item.AddToPlayLaterQueue();
-                    if (QueueResult == QueueVideoResult.PlayLaterNotFound)
-                        Message = "PlayLater queue link not found. PlayLater may not be running.";
-                    else if (QueueResult == QueueVideoResult.AlreadyInQueue)
-                        Message = "The requested media item is already in the queue.";
-                    Success = (QueueResult == QueueVideoResult.Success);
+                    Success = true;
+                    Message = "Video will be queued on next run in Queue Mode.";
+                    _QueuedRunTime = _QueuedRunTime.Add(Item.RunTime);
                 }
-                catch (Exception ex)
+                else
                 {
-                    Message = ex.Message.ToString();
+                    try
+                    {
+                        QueueVideoResult QueueResult = Item.AddToPlayLaterQueue();
+                        if (QueueResult == QueueVideoResult.PlayLaterNotFound)
+                            Message = "PlayLater queue link not found. PlayLater may not be running.";
+                        else if (QueueResult == QueueVideoResult.AlreadyInQueue)
+                            Message = "The requested media item is already in the queue.";
+                        if (QueueResult == QueueVideoResult.Success)
+                        {
+                            Success = true;
+                            _QueuedRunTime = _QueuedRunTime.Add(Item.RunTime);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Message = ex.Message.ToString();
+                    }
                 }
-            }
+            } else
+                Message = "This video would exceed total runtime.";
             WriteLog("        QueueVideo Response: {0}{1}",(Success ? "Success" : "Skipped"), (Message == "" ? "" : " - " + Message));
         }
 

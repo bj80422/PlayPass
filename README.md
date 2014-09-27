@@ -19,6 +19,11 @@ How to build it
 --------------------------------
 Open the PlayPass.sln file in Visual Studios (Only Visual Studios 2013 has been tested but earlier versions should work also) and select "Build Solution" from the "Build" menu.
 
+If you'd like, you can also build on a Linux OS with the Mono development environment with this command:
+  dmcs PlayPass/*cs PlaySharp/*cs
+
+PlayPass will not run under a native Linux OS but it's possible to cross build the executable and run on a Windows OS.
+
 How to use it
 --------------------------------
 You can compile from source or grab the latest release files and start from there.
@@ -37,7 +42,7 @@ Make a copy of the PlayPass.example.cfg and modify it to your liking.  The follo
 		</passes>
 	</playpass>
 
-You can add as many "passes" nodes as you'd like.  You can even disable one by changing the "enabled" property to "0".  `scan` nodes will progress through the PlayOn items looking for an item that matches the supplied name.  The `name` can use * as a wildcard to match zero to many characters or ? to match one character.
+You can add as many "passes" nodes as you'd like.  You can even disable one by changing the "enabled" property to "0".  `scan` nodes will progress through the PlayOn items looking for an item that matches the supplied name.  The `name` can use * as a wildcard to match zero to many characters or ? to match one character.  You can also limit the total run time queued by using the "max" property to specify total allowable run time in "hh:mm:ss" format.
 
 You can add as many `queue` nodes as you'd like which will queue any videos in the current position in the PlayOn items that matches the included pattern.  The `name` argument can also use wildcards like the `scan` nodes.  Both scan and queue nodes can utilize a `exclude` argument to exclude known bad matches.  This can sometimes simplify favorites channels to a `*` match.
 
