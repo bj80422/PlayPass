@@ -74,7 +74,6 @@ namespace PlayPass
                 WriteLog("Processing {0}...", Util.GetNodeAttributeValue(PassNode, "description"));
                 try
                 {
-                    List<string> Paths = new List<string>();
                     foreach (XmlNode Node in PassNode.ChildNodes)
                     {
                         string MatchPattern = Util.GetNodeAttributeValue(Node, "name");
