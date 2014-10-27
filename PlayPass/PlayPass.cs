@@ -77,7 +77,7 @@ namespace PlayPass
             PlayOnItem CurrItem = PlayOn.GetCatalog();
             if (Util.GetNodeAttributeValue(PassNode, "enabled", "0") == "1")
             {
-                WriteLog("Processing {0}...", Util.GetNodeAttributeValue(PassNode, "description"));
+                WriteLog("=== Processing {0} ===", Util.GetNodeAttributeValue(PassNode, "description"));
                 try
                 {
                     foreach (XmlNode Node in PassNode.ChildNodes)
@@ -89,20 +89,21 @@ namespace PlayPass
                             continue;
                         if (Node.Name == "scan")
                         {
-                            WriteLog("  Looking for a folder with text matching \"{0}\"...", MatchPattern);
+                            WriteLog("   SEARCH: \"{0}\"", MatchPattern);
                             foreach (PlayOnItem ChildItem in ((PlayOnFolder)CurrItem).Items)
                             {
                                 if (ChildItem is PlayOnFolder)
                                 {
                                     if (VerboseMode)
-                                        WriteLog("    Checking pattern against \"{0}\"...", ChildItem.Name);
+                                        WriteLog("  COMPARE: \"{0}\"", ChildItem.Name);
                                     if (Util.MatchesPattern(ChildItem.Name, ExcludePattern))
                                     {
-                                        WriteLog("    Excluded: \"{0}\"", ChildItem.Name);
+                                        WriteLog("  EXCLUDE: \"{0}\"", ChildItem.Name);
                                     }
                                     else if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
                                     {
-                                        WriteLog("    Found: " + ChildItem.Name);
+                                        if (VerboseMode)
+                                            WriteLog("    MATCH: " + ChildItem.Name);
                                         FoundItem = true;
                                         CurrItem = ChildItem;
                                         break;
@@ -110,31 +111,32 @@ namespace PlayPass
                                 }
                             }
                             if (!FoundItem)
-                                WriteLog("    No folders were found text matching \"{0}\".", MatchPattern);
+                                WriteLog(" NO MATCH: \"{0}\"", MatchPattern);
                         }
                         else if (Node.Name == "queue")
                         {
-                            WriteLog("  Looking for videos with text matching \"{0}\"...", MatchPattern);
+                            WriteLog("   SEARCH: \"{0}\"", MatchPattern);
                             foreach (PlayOnItem ChildItem in ((PlayOnFolder)CurrItem).Items)
                             {
                                 if (ChildItem is PlayOnVideo)
                                 {
                                     if (VerboseMode)
-                                        WriteLog("    Checking pattern against \"{0}\"...", ChildItem.Name);
+                                        WriteLog("  COMPARE: \"{0}\"", ChildItem.Name);
                                     if (Util.MatchesPattern(ChildItem.Name, ExcludePattern))
                                     {
-                                        WriteLog("    Excluded: \"{0}\"", ChildItem.Name);
+                                        WriteLog("  EXCLUDE: \"{0}\"", ChildItem.Name);
                                     }
                                     else if (Util.MatchesPattern(ChildItem.Name, MatchPattern))
                                     {
-                                        WriteLog("    Found: {0}", ChildItem.Name);
+                                        if (VerboseMode)
+                                            WriteLog("    MATCH: {0}", ChildItem.Name);
                                         QueueMedia((PlayOnVideo)ChildItem);
                                         FoundItem = true;
                                     }
                                 }
                             }
                             if (!FoundItem)
-                                WriteLog("    No videos were found that matched this criteria.");
+                                WriteLog(" NO MATCH: \"{0}\"", MatchPattern);
                         }
                     }
                 }
@@ -153,7 +155,7 @@ namespace PlayPass
             bool Success = false;
             string Message = "";
 
-            WriteLog("      Adding Video to Queue: " + Item.Name + " (" + Item.RunTime + ")");
+            WriteOutput("  QUEUING: " + Item.Name + " (" + Item.RunTime + ")");
             string FileName = String.Format("{0} - {1}{2}", Item.Series, Item.MediaTitle, MediaFileExt);
             Regex re = new Regex("[<>:\"/\\|?*]");
             FileName = re.Replace(FileName, "_").TrimStart(' ','-');
@@ -164,7 +166,7 @@ namespace PlayPass
                 if (!QueueMode)
                 {
                     Success = true;
-                    Message = "Video will be queued on next run in Queue Mode.";
+                    Message = "Run in queue mode to record";
                     _QueuedRunTime = _QueuedRunTime.Add(Item.RunTime);
                 }
                 else
@@ -173,9 +175,9 @@ namespace PlayPass
                     {
                         QueueVideoResult QueueResult = Item.AddToPlayLaterQueue();
                         if (QueueResult == QueueVideoResult.PlayLaterNotFound)
-                            Message = "PlayLater queue link not found. PlayLater may not be running.";
+                            Message = "PlayLater queue link not found (Is PlayLater running?)";
                         else if (QueueResult == QueueVideoResult.AlreadyInQueue)
-                            Message = "The requested media item is already in the queue.";
+                            Message = "Media item is already in the queue";
                         if (QueueResult == QueueVideoResult.Success)
                         {
                             Success = true;
@@ -188,8 +190,8 @@ namespace PlayPass
                     }
                 }
             } else
-                Message = "This video would exceed total runtime.";
-            WriteLog("        QueueVideo Response: {0}{1}",(Success ? "Success" : "Skipped"), (Message == "" ? "" : " - " + Message));
+                Message = "Exceeds total runtime";
+            WriteLog(" {0}{1}",(Success ? "[Success" : "[Skipped"), (Message == "" ? "" : ": " + Message) + "]");
         }
 
         /// <summary>
@@ -209,6 +211,27 @@ namespace PlayPass
             Message = String.Format(Message, args);
             Console.WriteLine(Message);
             Debug.WriteLine(Message);
+        }
+
+        /// <summary>
+        /// Writes a log message to the console and to the debug area without
+        /// newline.
+        /// </summary>
+        void WriteOutput(string Message)
+        {
+            Console.Write(Message);
+            Debug.Write(Message);
+        }
+
+        /// <summary>
+        /// Writes a log message to the console and to the debug area without
+        /// newline.
+        /// </summary>
+        void WriteOutput(string Message, params object[] args)
+        {
+            Message = String.Format(Message, args);
+            Console.Write(Message);
+            Debug.Write(Message);
         }
     }
 
